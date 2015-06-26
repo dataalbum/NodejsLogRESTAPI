@@ -1,8 +1,9 @@
 ﻿var http = require('http');
-var port = process.env.port || 1337;
 var restify = require('restify');
 var MongoClient = require('mongodb').MongoClient;
 var moment = require('moment');
+var port = process.env.OPENSHIFT_NODEJS_PORT || 1337,
+    ip = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
 var dbUri = process.env.MONGOLAB_URI || 'mongodb://127.0.0.1:27017/logs'
 
 // Server
@@ -156,8 +157,8 @@ http.createServer(function (req, res) {
     res.end('Hello World\n');
 }).listen(port);*/
 
-server.listen(3000, function () {
-    console.log("Server started @ 3000");
+server.listen(port, ip, function () {
+    console.log("Server started @ ", port);
 });
 
 module.exports = server;
