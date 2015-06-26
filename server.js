@@ -77,11 +77,12 @@ server.post('/log', function (req, res, next) {
     var log = req.body;
     coll.insert(log,
         function (err, data) {
+        /*
         res.writeHead(200, {
             'Content-Type': 'application/json; charset=utf-8'
         });
         res.end(JSON.stringify(log));
-/* 
+        */
          if (err) {
             res.status(500);
             res.json({
@@ -93,7 +94,9 @@ server.post('/log', function (req, res, next) {
                 type: true,
                 data: log
             })
-        }*/
+        }
+        //console.log(" Record added as " + log[0]._id);
+        console.log("Data: ", log);
     });
     return next();
 });
