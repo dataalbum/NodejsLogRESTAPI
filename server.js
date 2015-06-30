@@ -4,14 +4,10 @@ var MongoClient = require('mongodb').MongoClient;
 var moment = require('moment');
 var port = process.env.OPENSHIFT_NODEJS_PORT || 1337,
     ip = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
-var dbUri = process.env.MONGOLAB_URI || 'mongodb://127.0.0.1:27017/logs'
+var dbUri = process.env.MONGOLAB_URI || 'mongodb://logsdbuser:p0rject@ds031902.mongolab.com:31902/logs'//'mongodb://127.0.0.1:27017/logs'
 
 // Server
 var server = restify.createServer();
-
-//date
-var currentDate = moment().format('YYYY-MM-DD');
-console.log('Today is ', currentDate);
 
 server.use(restify.acceptParser(server.acceptable));
 server.use(restify.queryParser());
@@ -37,12 +33,18 @@ server.get("/logs", function (req, res, next) {
     return next();
 });
 
-//Get all logs from today
-server.get("/logs/today", function (req, res, next) {
+//Get all logs by datetime (logs/YYYYMMDDHHmm)
+server.get("/logs/:utcdatetime", function (req, res, next) {
     //db.templog.find({timestamp: {$gt: '2015-06-05'}});
+    var startisodate = moment.utc(req.params.utcdatetime, 'YYYYMMDDHHmm').format();
+    var endisodate = moment.utc(startisodate).add(1, 'days').format();
+    
+    console.log("Start date: ", startisodate);
+    console.log("End date: ", endisodate)
     var cursor = coll.find({
         timestamp: {
-            $gte: currentDate
+            $gte: startisodate,
+            $lt: endisodate
         }
     });
     cursor.toArray(function (err, products) {
@@ -52,24 +54,6 @@ server.get("/logs/today", function (req, res, next) {
         res.end(JSON.stringify(products));
     });
     return next();
-});
-
-//Get log per id
-server.get('/log/:id', function (req, res, next) {
-    MongoClient.connect(dbUri, function (err, db) {
-        if (err) throw err;
-        console.log(" Connected to Database");
-        db.collection('templog').findOne({
-            id: req.params.id
-        }, function (err, data) {
-            res.writeHead(200, {
-                'Content-Type': 'application/json; charset=utf-8'
-            });
-            res.end(JSON.stringify(data));
-        });
-        return next();
-        db.close();
-    });
 });
 
 //Create log
@@ -154,11 +138,6 @@ server.del('/log/:id', function (req, res, next) {
         db.close();
     });
 });
-/*
-http.createServer(function (req, res) {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Hello World\n');
-}).listen(port);*/
 
 server.listen(port, ip, function () {
     console.log("Server started @ ", port);
