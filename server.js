@@ -34,7 +34,7 @@ server.get("/logs", function (req, res, next) {
 });
 
 //Get all logs by datetime (logs/YYYYMMDDHHmm)
-server.get("/logs/:utcdatetime", function (req, res, next) {
+server.get("/logs/temperature/:utcdatetime", function (req, res, next) {
     //db.templog.find({timestamp: {$gt: '2015-06-05'}});
     var startisodate = moment.utc(req.params.utcdatetime, 'YYYYMMDDHHmm').format();
     var endisodate = moment.utc(startisodate).add(1, 'days').format();
