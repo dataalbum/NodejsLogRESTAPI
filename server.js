@@ -4,7 +4,7 @@ var MongoClient = require('mongodb').MongoClient;
 var moment = require('moment');
 var port = process.env.OPENSHIFT_NODEJS_PORT || 1337,
     ip = process.env.OPENSHIFT_NODEJS_IP || "127.0.0.1";
-var dbUri = process.env.MONGOLAB_URI || 'mongodb://logsdbuser:p0rject@ds031902.mongolab.com:31902/logs'//'mongodb://127.0.0.1:27017/logs'
+var dbUri = process.env.MONGOLAB_URI || 'mongodb://127.0.0.1:27017/logs'
 
 // Server
 var server = restify.createServer();
@@ -55,6 +55,41 @@ server.get("/logs/temperature/:utcdatetime", function (req, res, next) {
     });
     return next();
 });
+
+//Get all logs as xy by datetime (logs/YYYYMMDDHHmm)
+server.get("/logs/temperature/timeseries/:utcdatetime", function (req, res, next) {
+    //db.templog.find({timestamp: {$gt: '2015-06-05'}});
+    //db.templog.aggregate([{"$match":{timestamp: {$gt: '2015-06-18'}}},{"$project":{_id:0,x: "$timestamp",y:"$value"}}])
+    var startisodate = moment.utc(req.params.utcdatetime, 'YYYYMMDDHHmm').format();
+    var endisodate = moment.utc(startisodate).add(1, 'days').format();
+    
+    console.log("Start date: ", startisodate);
+    console.log("End date: ", endisodate)
+    var cursor = coll.aggregate([{
+            "$match": {
+                timestamp: {
+                    $gt: startisodate,
+                    $lt: endisodate
+                }
+            }
+        },
+        {
+            "$project": {
+                _id: 0, 
+                x: "$timestamp", 
+                y: "$value"
+            }
+        }]);
+    cursor.toArray(function (err, logs) {
+        res.writeHead(200, {
+            'Content-Type': 'application/json; charset=utf-8'
+        });
+        res.end(JSON.stringify(logs));
+    });
+    return next();
+});
+
+
 
 //Create log
 server.post('/log', function (req, res, next) {
