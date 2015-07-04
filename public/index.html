@@ -13,16 +13,13 @@ var graph = new Rickshaw.Graph.Ajax( {
     element: document.querySelector("#chart"),
     width: 300,
     height: 200,
-    dataURL: 'http://nodejslogrestapi-dataalbum.rhcloud.com/logs/temperature/20150701',
-    onData: function (d) {
-        return [{
-            d:d[0].timestamp = 80; return d
-    },
+    dataURL: 'http://nodejslogrestapi-dataalbum.rhcloud.com/logs/temperature/timeseries/20150701',
+    onData: function(d) { d[0].y = 80; return d },
     series: [{
         color: 'steelblue'
     }]
 });
 
-graph.render();
+//graph.render();
 
 </script> 

@@ -60,6 +60,9 @@ server.get("/logs/temperature/:utcdatetime", function (req, res, next) {
 server.get("/logs/temperature/timeseries/:utcdatetime", function (req, res, next) {
     //db.templog.find({timestamp: {$gt: '2015-06-05'}});
     //db.templog.aggregate([{"$match":{timestamp: {$gt: '2015-06-18'}}},{"$project":{_id:0,x: "$timestamp",y:"$value"}}])
+    
+    //db.templog.aggregate([{"$match":{timestamp: {$gt: '2015-06-18'}}},{$group:{_id:"$measurename", data:{$push: {x:"$timestamp",y:"$value"}}}}])
+    
     var startisodate = moment.utc(req.params.utcdatetime, 'YYYYMMDDHHmm').format();
     var endisodate = moment.utc(startisodate).add(1, 'days').format();
     
@@ -74,10 +77,14 @@ server.get("/logs/temperature/timeseries/:utcdatetime", function (req, res, next
             }
         },
         {
-            "$project": {
-                _id: 0, 
-                x: "$timestamp", 
-                y: "$value"
+            $group: {
+                _id: "$measurename", 
+                data: {
+                    $push: {
+                        x: "$timestamp",
+                        y: "$value"
+                    }
+                }
             }
         }]);
     cursor.toArray(function (err, logs) {
